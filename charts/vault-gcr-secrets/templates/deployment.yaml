@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vault-gcr-secrets.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "vault-gcr-secrets.labels" . | indent 4 }}
+  annotations:
+    checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
+  {{- if .Values.podAnnotations }}
+{{ include "vault-gcr-secrets.annotations" . | indent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- with .Values.deploymentStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+{{ include "vault-gcr-secrets.matchLabels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ include "vault-gcr-secrets.labels" . | indent 8 }}
+      annotations:
+        checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- if .Values.podAnnotations }}
+{{ include "vault-gcr-secrets.annotations" . | indent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ template "vault-gcr-secrets.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - vault
+          args:
+            - agent
+            - -config
+            - /srv/vault-agent/agent.hcl
+          env:
+            {{- if .Values.vault.address }}
+            - name: VAULT_ADDRESS
+              value: {{ .Values.vault.address | quote }}
+            {{- end }}
+            {{- if .Values.vault.tokenPath }}
+            - name: VAULT_TOKEN_PATH
+              value: {{ .Values.vault.tokenPath | quote }}
+            {{- end }}
+            {{- with .Values.environmentVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http-metrics
+              containerPort: 8080
+              protocol: TCP
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          volumeMounts:
+            - name: vault-agent-config
+              mountPath: "/srv/vault-agent"
+            {{- if .Values.vault.credentialSecretName }}
+            - name: vault-credentials
+              mountPath: "/run/secrets/vault-credentials"
+            {{- end }}
+          {{- with .Values.image.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            exec:
+              command:
+                - cat
+                - /dev/shm/.agent-token
+                - /dev/shm/key.json
+          readinessProbe:
+            exec:
+              command:
+                - cat
+                - /dev/shm/.agent-token
+                - /dev/shm/key.json
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- include "vault-gcr-secrets.additionalContainers" . | nindent 8 }}
+      volumes:
+        - name: vault-agent-config
+          configMap:
+            name: {{ template "vault-gcr-secrets.fullname" . }}-config
+        {{- if .Values.vault.credentialSecretName }}
+        - name: vault-credentials
+          secret:
+            secretName: {{ .Values.vault.credentialSecretName }}
+        {{- end }}
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}

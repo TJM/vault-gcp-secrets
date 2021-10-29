@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "vault-gcr-secrets.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "vault-gcr-secrets.labels" . | indent 4 }}
+  {{- if .Values.podAnnotations }}
+  annotations:
+{{ include "vault-gcr-secrets.annotations" . | indent 4 }}
+  {{- end }}
+data:
+  agent.hcl: |
+    exit_after_auth = false
+    pid_file = "/dev/shm/vault-agent.pid"
+
+    vault {
+        address = "{{ .Values.vault.address }}"
+        num_retries = "{{ .Values.vault.numRetries }}"
+    }
+
+    auto_auth {
+      method "{{ .Values.vault.authMethod }}" {
+          {{- if .Values.vault.authMountPath }}
+          mount_path = "{{ .Values.vault.authMountPath }}"
+          {{- end }}
+
+          config = {
+          {{- if eq .Values.vault.authMethod "approle" }}
+              role_id_file_path = "/run/secrets/vault-credentials/role_id"
+              secret_id_file_path = "/run/secrets/vault-credentials/secret_id"
+              remove_secret_id_file_after_reading = false
+          {{- end }}
+          {{- if eq .Values.vault.authMethod "kubernetes" }}
+              role = "{{ .Values.vault.kubernetesRole }}"
+          {{- end }}
+          }
+      }
+
+      sink "file" {
+          config = {
+              path = "/dev/shm/.agent-token"
+          }
+      }
+    }
+
+    template {
+      error_on_missing_key = true
+      source      = "/srv/vault-agent/template.ctmpl"
+      destination = "/dev/shm/key.json"
+      command = "bash -c 'kubectl create secret docker-registry gcr-secret --docker-server gcr.io --docker-username _json_key --docker-email \"$(jq -r .client_email /dev/shm/key.json)\" --docker-password \"$(cat /dev/shm/key.json)\" --dry-run=client -o yaml | kubectl apply -f -'"
+    }
+
+    template_config {
+      exit_on_retry_failure = true
+    }
+
+  template.ctmpl: |
+    {{ "{{" }} with secret "{{ .Values.vault.gcpSecretPath }}" {{ "}}" }}
+    {{ "{{" }} base64Decode .Data.private_key_data {{ "}}" }}
+    {{ "{{" }} end {{ "}}" }}
