@@ -1,0 +1,18 @@
+{{ if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "vault-gcr-secrets.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "vault-gcr-secrets.labels" . | indent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: vault-gcr-secrets
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: {{ template "vault-gcr-secrets.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{ end }}

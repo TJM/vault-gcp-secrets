@@ -1,0 +1,8 @@
+1. Check the pod by running these commands:
+
+  kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "vault-gcr-secrets.name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
+
+{{ if contains "kubernetes" .Values.vault.authMethod }}
+2. Configure Vault using the "{{ template "vault-gcr-secrets.serviceAccountName" . }}" ServiceAccount.
+
+{{ end }}
