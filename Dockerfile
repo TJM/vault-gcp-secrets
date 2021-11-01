@@ -1,4 +1,4 @@
-FROM docker-remote.artifactory.davita.com/vault:1.8.4
+FROM docker-remote.artifactory.davita.com/vault:1.6.7
 ARG KUBECTL_VERSION="stable"
 
 # Add more dependencies
