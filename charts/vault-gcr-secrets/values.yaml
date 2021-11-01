@@ -2,7 +2,7 @@ replicaCount: 1
 deploymentStrategy: {}
 
 image:
-  repository: tjm/vault-gcr-secrets
+  repository: quay.io/tommydavita/vault-gcr-secrets
   tag: 0.1.4
   pullPolicy: IfNotPresent
   volumeMounts: []

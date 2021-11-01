@@ -10,7 +10,7 @@ NOTE: This is alpha quality, use it at your own risk.
 | ----- | ----------- | ------- |
 | `replicaCount` | Number of replications which should be created. | `1` |
 | `deploymentStrategy` | Deployment strategy which should be used. | `{}` |
-| `image.repository` | The repository of the Docker image. | `tjm/vault-gcr-secrets` |
+| `image.repository` | The repository of the Docker image. | `quay.io/tommydavita/vault-gcr-secrets` |
 | `image.tag` | The tag of the Docker image which should be used. | `1.15.2` |
 | `image.pullPolicy` | The pull policy for the Docker image, | `IfNotPresent` |
 | `image.volumeMounts` | Mount additional volumns to the container. | `[]` |
