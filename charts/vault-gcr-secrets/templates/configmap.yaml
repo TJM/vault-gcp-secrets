@@ -48,7 +48,7 @@ data:
       error_on_missing_key = true
       source      = "/srv/vault-agent/template.ctmpl"
       destination = "/dev/shm/key.json"
-      command = "bash -c 'kubectl create secret docker-registry gcr-secret --docker-server gcr.io --docker-username _json_key --docker-email \"$(jq -r .client_email /dev/shm/key.json)\" --docker-password \"$(cat /dev/shm/key.json)\" --dry-run=client -o yaml | kubectl apply -f -'"
+      command = "bash -c 'kubectl create secret docker-registry \"{{ .Values.secret.name }}\" --docker-server \"{{ .Values.secret.dockerServer }}\" --docker-username \"{{ .Values.secret.dockerUsername }}\" --docker-email \"$(jq -r .client_email /dev/shm/key.json)\" --docker-password \"$(cat /dev/shm/key.json)\" --dry-run=client -o yaml | kubectl apply -f -'"
     }
 
     template_config {
