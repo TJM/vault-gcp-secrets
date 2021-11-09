@@ -11,6 +11,8 @@ rules:
   - ""
   resources:
   - secrets
+  resourceNames:
+  - {{ .Values.secret.name | quote}}
   verbs:
   - create
   - delete
