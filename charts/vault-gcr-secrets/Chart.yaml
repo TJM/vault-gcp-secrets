@@ -1,10 +1,9 @@
 apiVersion: v1
-appVersion: 0.1.7
+name: vault-gcr-secrets
 description: Create Kubernetes Docker-Registry secrets from Vault GCP Secrets Engine to access GCR.
 home: https://github.com/TJM/vault-gcr-secrets
-#icon: https://raw.githubusercontent.com/ricoberger/vault-gcr-secrets/master/assets/logo.png
+# icon: https://raw.githubusercontent.com/TJM/vault-gcr-secrets/master/assets/logo.png
 maintainers:
-  - name: Tommy McNeely
-    #url:
-name: vault-gcr-secrets
-version: 0.1.7
+  - name: TJM  # Tommy McNeely
+version: 0.1.8
+appVersion: 0.1.8
