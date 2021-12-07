@@ -58,6 +58,7 @@ jobs:
       - name: Configure vault for kubernetes authentication
         run: |
           kubectl port-forward --namespace vault vault-0 8200 &
+          sleep 10s
           vault login root
           kubectl create serviceaccount --namespace kube-system vault-auth
           kubectl create clusterrolebinding vault-auth-kube --clusterrole system:auth-delegator --serviceaccount kube-system:vault-auth
