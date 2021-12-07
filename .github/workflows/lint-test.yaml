@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Setup Vault
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install vault
+
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.1.0
 
@@ -36,12 +42,32 @@ jobs:
       - name: Run chart-testing (lint)
         run: ct lint
 
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.2.0
+      - name: Create KIND cluster with Registry
+        # uses: helm/kind-action@v1.2.0
+        uses: container-tools/kind-action@v1
         if: steps.list-changed.outputs.changed == 'true'
 
-      - name: Install CRD for VaultSecret
-        run: kubectl apply -f https://raw.githubusercontent.com/ricoberger/vault-secrets-operator/master/charts/vault-secrets-operator/crds/crd-vaultsecret.yaml
+      - name: Install Vault Service
+        run: |
+          kubectl create ns vault
+          helm repo add hashicorp https://helm.releases.hashicorp.com
+          helm upgrade --install vault hashicorp/vault --namespace=vault --version=0.18.0 --set server.dev.enabled=true --set injector.enabled=false
+          sleep 10s
+          kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
+
+      - name: Configure vault for kubernetes authentication
+        run: |
+          kubectl port-forward --namespace vault vault-0 8200 &
+          vault login root
+          kubectl create serviceaccount --namespace kube-system vault-auth
+          kubectl create clusterrolebinding vault-auth-kube --clusterrole system:auth-delegator --serviceaccount kube-system:vault-auth
+          VAULT_SECRET_NAME=$(kubectl get sa vault-auth --output jsonpath="{.secrets[*]['name']}")
+          SA_JWT_TOKEN=$(kubectl get secret $VAULT_SA_NAME --output 'go-template={{ .data.token }}' | base64 --decode)
+          SA_CA_CRT=$(kubectl config view --raw --minify --flatten --output 'jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode)
+          env | grep -E 'VAULT_SECRET_NAME|SA_JWT_TOKEN|SA_CA_CRT'
+          vault auth enable kubernetes
+          vault write auth/kubernetes/config token_reviewer_jwt="$SA_JWT_TOKEN" kubernetes_host="https://kubernetes.default.svc" kubernetes_ca_cert="$SA_CA_CRT" issuer="https://kubernetes.default.svc.cluster.local"
+
 
       - name: Run chart-testing (install)
         run: ct install
