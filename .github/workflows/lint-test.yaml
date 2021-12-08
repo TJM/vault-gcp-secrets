@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CT_TARGET_BRANCH: main
+      VAULT_ADDR: http://127.0.0.1:8200
     steps:
       - name: Checkout
         uses: actions/checkout@v2
