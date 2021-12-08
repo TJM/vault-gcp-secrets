@@ -57,14 +57,16 @@ jobs:
           kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
 
       - name: Configure vault for kubernetes authentication
+        env:
+          VAULT_AUTH_NAMESPACE: kube-system
         run: |
           kubectl port-forward --namespace vault vault-0 8200 &
           sleep 10s
           vault login root
-          kubectl create serviceaccount --namespace kube-system vault-auth
-          kubectl create clusterrolebinding vault-auth-kube --clusterrole system:auth-delegator --serviceaccount kube-system:vault-auth
-          VAULT_SECRET_NAME=$(kubectl get sa vault-auth --output jsonpath="{.secrets[*]['name']}")
-          SA_JWT_TOKEN=$(kubectl get secret $VAULT_SA_NAME --output 'go-template={{ .data.token }}' | base64 --decode)
+          kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth
+          kubectl create clusterrolebinding vault-auth-kube --clusterrole system:auth-delegator --serviceaccount --namespace $VAULT_AUTH_NAMESPACE:vault-auth
+          VAULT_SECRET_NAME=$(kubectl get serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth --output jsonpath="{.secrets[*]['name']}")
+          SA_JWT_TOKEN=$(kubectl get secret --namespace $VAULT_AUTH_NAMESPACE $VAULT_SA_NAME --output 'go-template={{ .data.token }}' | base64 --decode)
           SA_CA_CRT=$(kubectl config view --raw --minify --flatten --output 'jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode)
           env | grep -E 'VAULT_SECRET_NAME|SA_JWT_TOKEN|SA_CA_CRT'
           vault auth enable kubernetes
