@@ -61,6 +61,7 @@ jobs:
         env:
           VAULT_AUTH_NAMESPACE: kube-system
         run: |
+          set -xe
           kubectl port-forward --namespace vault vault-0 8200 &
           sleep 10s
           vault login root
