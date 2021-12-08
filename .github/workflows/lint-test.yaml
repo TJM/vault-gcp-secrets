@@ -8,6 +8,8 @@ jobs:
     env:
       CT_TARGET_BRANCH: main
       VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_SECRETS_OPERATOR_NAMESPACE: vault-secrets-operator
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -65,12 +67,21 @@ jobs:
           kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth
           kubectl create clusterrolebinding vault-auth-kube --clusterrole system:auth-delegator --serviceaccount $VAULT_AUTH_NAMESPACE:vault-auth
           VAULT_SECRET_NAME=$(kubectl get serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth --output jsonpath="{.secrets[*]['name']}")
-          SA_JWT_TOKEN=$(kubectl get secret --namespace $VAULT_AUTH_NAMESPACE $VAULT_SA_NAME --output 'go-template={{ .data.token }}' | base64 --decode)
+          SA_JWT_TOKEN=$(kubectl get secret --namespace $VAULT_AUTH_NAMESPACE $VAULT_SECRET_NAME --output 'go-template={{ .data.token }}' | base64 --decode)
           SA_CA_CRT=$(kubectl config view --raw --minify --flatten --output 'jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode)
           env | grep -E 'VAULT_SECRET_NAME|SA_JWT_TOKEN|SA_CA_CRT'
           vault auth enable kubernetes
           vault write auth/kubernetes/config token_reviewer_jwt="$SA_JWT_TOKEN" kubernetes_host="https://kubernetes.default.svc" kubernetes_ca_cert="$SA_CA_CRT" issuer="https://kubernetes.default.svc.cluster.local"
 
+      - name: Setup Vault Secrets Operator Role and Test Secret
+        run: |
+          cat <<EOF | vault policy write vault-secrets-operator -
+          path "secrets/*" {
+            capabilities = ["read"]
+          }
+          EOF
+          vault write auth/kubernetes/role/vault-secrets-operator bound_service_account_names="vault-secrets-operator" bound_service_account_namespaces="$VAULT_SECRETS_OPERATOR_NAMESPACE" policies=vault-secrets-operator ttl=24h
+          vault kv put secrets/test-secret private_key_data='{"client_email": "a@b.c", "private_key": "RSA Private Key"}'
 
       - name: Run chart-testing (install)
         run: ct install
