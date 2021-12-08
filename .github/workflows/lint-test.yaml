@@ -8,7 +8,7 @@ jobs:
     env:
       CT_TARGET_BRANCH: main
       VAULT_ADDR: http://127.0.0.1:8200
-      VAULT_SECRETS_OPERATOR_NAMESPACE: vault-secrets-operator
+      MY_NAMESPACE: vault-gcr-secrets
 
     steps:
       - name: Checkout
@@ -52,7 +52,7 @@ jobs:
 
       - name: Install Vault Service
         run: |
-          kubectl create ns vault
+          kubectl create namespace vault
           helm repo add hashicorp https://helm.releases.hashicorp.com
           helm upgrade --install vault hashicorp/vault --namespace=vault --version=0.18.0 --set server.dev.enabled=true --set injector.enabled=false
           kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
@@ -72,23 +72,36 @@ jobs:
           vault auth enable kubernetes
           vault write auth/kubernetes/config token_reviewer_jwt="$SA_JWT_TOKEN" kubernetes_host="https://kubernetes.default.svc" kubernetes_ca_cert="$SA_CA_CRT" issuer="https://kubernetes.default.svc.cluster.local"
 
-      - name: Setup Vault Secrets Operator Role and Test Secret
+      - name: Setup GCP secrets engine
         run: |
-          cat <<EOF | vault policy write vault-secrets-operator -
-          path "secrets/*" {
+          vault secrets enable gcp
+          # vault write gcp/config credentials=@my-credentials.json # FIXME!
+          vault write gcp/roleset/vault-gcr-secrets \
+            project="my-project" \
+            secret_type="access_token"  \
+            token_scopes="https://www.googleapis.com/auth/cloud-platform" \
+            bindings=-<<EOF
+            resource "//cloudresourcemanager.googleapis.com/projects/my-project" {
+              roles = ["roles/viewer"]
+            }
+          EOF
+
+      - name: Setup Vault GCR Secrets Policy and Role
+        run: |
+          cat <<EOF | vault policy write vault-gcr-secrets -
+          path "gcp/vault-gcr-secret/key" {
             capabilities = ["read"]
           }
           EOF
-          vault write auth/kubernetes/role/vault-secrets-operator bound_service_account_names="vault-secrets-operator" bound_service_account_namespaces="$VAULT_SECRETS_OPERATOR_NAMESPACE" policies=vault-secrets-operator ttl=24h
-          vault kv put secrets/test-secret private_key_data='{"client_email": "a@b.c", "private_key": "RSA Private Key"}'
+          vault write auth/kubernetes/role/vault-gcr-secrets bound_service_account_names="vault-gcr-secrets" bound_service_account_namespaces="$MY_NAMESPACE" policies=vault-gcr-secrets ttl=24h
 
       - name: Install vault-gcr-secrets
         run: |
-          kubectl create namespace "$VAULT_SECRETS_OPERATOR_NAMESPACE"
-          helm upgrade --install vault-secrets-operator ./charts/vault-secrets-operator --namespace="$VAULT_SECRETS_OPERATOR_NAMESPACE" \
-            --set vault.address "http://vault.vault.svc.cluster.local:8200"
-            --set vault.authMethod kubernetes \
-            --set vault.authMountPath auth/kubernetes \
-            --set vault.kubernetesRole vault-secrets-operator \
-            --set vault.gcpSecretPath secrets/test-secret
-          kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
+          kubectl create namespace "$MY_NAMESPACE"
+          helm upgrade --install vault-gcr-secrets ./charts/vault-gcr-secrets \
+            --namespace "$MY_NAMESPACE" \
+            --set vault.address="http://vault.vault.svc.cluster.local:8200" \
+            --set vault.authMethod=kubernetes \
+            --set vault.authMountPath=auth/kubernetes \
+            --set vault.kubernetesRole=vault-gcr-secrets \
+            --set vault.gcpSecretPath=gcp/vault-gcr-secret/key
