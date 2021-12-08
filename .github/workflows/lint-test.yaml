@@ -61,7 +61,6 @@ jobs:
         env:
           VAULT_AUTH_NAMESPACE: kube-system
         run: |
-          set -xe
           kubectl port-forward --namespace vault vault-0 8200 &
           sleep 10s
           vault login root
@@ -70,7 +69,6 @@ jobs:
           VAULT_SECRET_NAME=$(kubectl get serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth --output jsonpath="{.secrets[*]['name']}")
           SA_JWT_TOKEN=$(kubectl get secret --namespace $VAULT_AUTH_NAMESPACE $VAULT_SECRET_NAME --output 'go-template={{ .data.token }}' | base64 --decode)
           SA_CA_CRT=$(kubectl config view --raw --minify --flatten --output 'jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode)
-          env | grep -E 'VAULT_SECRET_NAME|SA_JWT_TOKEN|SA_CA_CRT'
           vault auth enable kubernetes
           vault write auth/kubernetes/config token_reviewer_jwt="$SA_JWT_TOKEN" kubernetes_host="https://kubernetes.default.svc" kubernetes_ca_cert="$SA_CA_CRT" issuer="https://kubernetes.default.svc.cluster.local"
 
@@ -84,5 +82,13 @@ jobs:
           vault write auth/kubernetes/role/vault-secrets-operator bound_service_account_names="vault-secrets-operator" bound_service_account_namespaces="$VAULT_SECRETS_OPERATOR_NAMESPACE" policies=vault-secrets-operator ttl=24h
           vault kv put secrets/test-secret private_key_data='{"client_email": "a@b.c", "private_key": "RSA Private Key"}'
 
-      - name: Run chart-testing (install)
-        run: ct install
+      - name: Install vault-gcr-secrets
+        run: |
+          kubectl create namespace "$VAULT_SECRETS_OPERATOR_NAMESPACE"
+          helm upgrade --install vault-secrets-operator ./charts/vault-secrets-operator --namespace="$VAULT_SECRETS_OPERATOR_NAMESPACE" \
+            --set vault.address "http://vault.vault.svc.cluster.local:8200"
+            --set vault.authMethod kubernetes \
+            --set vault.authMountPath auth/kubernetes \
+            --set vault.kubernetesRole vault-secrets-operator \
+            --set vault.gcpSecretPath secrets/test-secret
+          kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
