@@ -1,0 +1,17 @@
+apiVersion: v1
+entries:
+  vault-gcr-secrets:
+  - apiVersion: v1
+    appVersion: 0.1.8
+    created: "2021-12-10T21:40:18.305523657Z"
+    description: Create Kubernetes Docker-Registry secrets from Vault GCP Secrets
+      Engine to access GCR.
+    digest: c81f73eda8bf4c2e49eb0e5b0cc3b30452d6625bdffcb3c438d20904b49fcf07
+    home: https://github.com/TJM/vault-gcr-secrets
+    maintainers:
+    - name: TJM
+    name: vault-gcr-secrets
+    urls:
+    - https://github.com/TJM/vault-gcr-secrets/releases/download/vault-gcr-secrets-0.1.8/vault-gcr-secrets-0.1.8.tgz
+    version: 0.1.8
+generated: "2021-12-10T21:40:18.305536358Z"
