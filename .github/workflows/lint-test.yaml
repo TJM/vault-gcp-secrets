@@ -54,7 +54,11 @@ jobs:
         run: |
           kubectl create namespace vault
           helm repo add hashicorp https://helm.releases.hashicorp.com
-          helm upgrade --install vault hashicorp/vault --namespace=vault --version=0.18.0 --set server.dev.enabled=true --set injector.enabled=false
+          helm upgrade --install vault hashicorp/vault \
+            --namespace=vault \
+            --version=0.18.0 \
+            --set server.dev.enabled=true \
+            --set injector.enabled=false
           kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
 
       - name: Configure vault for kubernetes authentication
@@ -65,26 +69,31 @@ jobs:
           sleep 10s
           vault login root
           kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth
-          kubectl create clusterrolebinding vault-auth-kube --clusterrole system:auth-delegator --serviceaccount $VAULT_AUTH_NAMESPACE:vault-auth
-          VAULT_SECRET_NAME=$(kubectl get serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth --output jsonpath="{.secrets[*]['name']}")
-          SA_JWT_TOKEN=$(kubectl get secret --namespace $VAULT_AUTH_NAMESPACE $VAULT_SECRET_NAME --output 'go-template={{ .data.token }}' | base64 --decode)
-          SA_CA_CRT=$(kubectl config view --raw --minify --flatten --output 'jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode)
+          kubectl create clusterrolebinding vault-auth-kube \
+            --clusterrole system:auth-delegator \
+            --serviceaccount $VAULT_AUTH_NAMESPACE:vault-auth
+          VAULT_SECRET_NAME=$(kubectl get serviceaccount vault-auth \
+            --namespace $VAULT_AUTH_NAMESPACE \
+            --output jsonpath="{.secrets[*]['name']}")
+          SA_JWT_TOKEN=$(kubectl get secret $VAULT_SECRET_NAME \
+            --namespace $VAULT_AUTH_NAMESPACE \
+            --output 'go-template={{ .data.token }}' | base64 --decode)
+          SA_CA_CRT=$(kubectl config view --raw --minify --flatten \
+            --output 'jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode)
           vault auth enable kubernetes
-          vault write auth/kubernetes/config token_reviewer_jwt="$SA_JWT_TOKEN" kubernetes_host="https://kubernetes.default.svc" kubernetes_ca_cert="$SA_CA_CRT" issuer="https://kubernetes.default.svc.cluster.local"
+          vault write auth/kubernetes/config \
+            token_reviewer_jwt="$SA_JWT_TOKEN" \
+            kubernetes_host="https://kubernetes.default.svc" \
+            kubernetes_ca_cert="$SA_CA_CRT" \
+            issuer="https://kubernetes.default.svc.cluster.local"
 
       - name: Setup GCP secrets engine
         run: |
           vault secrets enable gcp
-          # vault write gcp/config credentials=@my-credentials.json # FIXME!
+          vault write gcp/config credentials='${{ secrets.GCP_TEST_ACCOUNT }}'
           vault write gcp/roleset/vault-gcr-secrets \
-            project="my-project" \
-            secret_type="access_token"  \
-            token_scopes="https://www.googleapis.com/auth/cloud-platform" \
-            bindings=-<<EOF
-            resource "//cloudresourcemanager.googleapis.com/projects/my-project" {
-              roles = ["roles/viewer"]
-            }
-          EOF
+            project="vault-gcr-secrets-6969" \
+            secret_type="service_account_key"
 
       - name: Setup Vault GCR Secrets Policy and Role
         run: |
@@ -93,7 +102,10 @@ jobs:
             capabilities = ["read"]
           }
           EOF
-          vault write auth/kubernetes/role/vault-gcr-secrets bound_service_account_names="vault-gcr-secrets" bound_service_account_namespaces="$MY_NAMESPACE" policies=vault-gcr-secrets ttl=24h
+          vault write auth/kubernetes/role/vault-gcr-secrets \
+            bound_service_account_names="vault-gcr-secrets" \
+            bound_service_account_namespaces="$MY_NAMESPACE" \
+            policies=vault-gcr-secrets ttl=24h
 
       - name: Install vault-gcr-secrets
         run: |
