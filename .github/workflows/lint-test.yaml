@@ -106,6 +106,11 @@ jobs:
             bound_service_account_names="vault-gcr-secrets" \
             bound_service_account_namespaces="$MY_NAMESPACE" \
             policies=vault-gcr-secrets ttl=24h
+            bindings=-<<EOF
+            resource "//cloudresourcemanager.googleapis.com/projects/my-project" {
+              roles = ["roles/viewer"]
+            }
+          EOF
 
       - name: Install vault-gcr-secrets
         run: |
