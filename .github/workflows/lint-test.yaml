@@ -1,0 +1,124 @@
+name: Lint and Test Charts
+
+on: pull_request
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    env:
+      CT_TARGET_BRANCH: main
+      VAULT_ADDR: http://127.0.0.1:8200
+      MY_NAMESPACE: vault-gcr-secrets
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Setup Vault
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install vault
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.1.0
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed)
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+
+      - name: Run chart-testing (lint)
+        run: ct lint
+
+      - name: Create KIND cluster with Registry
+        # uses: helm/kind-action@v1.2.0
+        uses: container-tools/kind-action@v1
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Install Vault Service
+        run: |
+          kubectl create namespace vault
+          helm repo add hashicorp https://helm.releases.hashicorp.com
+          helm upgrade --install vault hashicorp/vault \
+            --namespace=vault \
+            --version=0.18.0 \
+            --set server.dev.enabled=true \
+            --set injector.enabled=false
+          kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
+
+      - name: Configure vault for kubernetes authentication
+        env:
+          VAULT_AUTH_NAMESPACE: kube-system
+        run: |
+          kubectl port-forward --namespace vault vault-0 8200 &
+          sleep 10s
+          vault login root
+          kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth
+          kubectl create clusterrolebinding vault-auth-kube \
+            --clusterrole system:auth-delegator \
+            --serviceaccount $VAULT_AUTH_NAMESPACE:vault-auth
+          VAULT_SECRET_NAME=$(kubectl get serviceaccount vault-auth \
+            --namespace $VAULT_AUTH_NAMESPACE \
+            --output jsonpath="{.secrets[*]['name']}")
+          SA_JWT_TOKEN=$(kubectl get secret $VAULT_SECRET_NAME \
+            --namespace $VAULT_AUTH_NAMESPACE \
+            --output 'go-template={{ .data.token }}' | base64 --decode)
+          SA_CA_CRT=$(kubectl config view --raw --minify --flatten \
+            --output 'jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode)
+          vault auth enable kubernetes
+          vault write auth/kubernetes/config \
+            token_reviewer_jwt="$SA_JWT_TOKEN" \
+            kubernetes_host="https://kubernetes.default.svc" \
+            kubernetes_ca_cert="$SA_CA_CRT" \
+            issuer="https://kubernetes.default.svc.cluster.local"
+
+      - name: Setup GCP secrets engine
+        run: |
+          vault secrets enable gcp
+          vault write gcp/config credentials='${{ secrets.GCP_TEST_ACCOUNT }}'
+          vault write gcp/roleset/vault-gcr-secrets \
+            project="vault-gcr-secrets-6969" \
+            secret_type="service_account_key" \
+            bindings=-<<EOF
+            resource "//cloudresourcemanager.googleapis.com/projects/my-project" {
+              roles = ["roles/viewer"]
+            }
+          EOF
+
+      - name: Setup Vault GCR Secrets Policy and Role
+        run: |
+          cat <<EOF | vault policy write vault-gcr-secrets -
+          path "gcp/vault-gcr-secret/key" {
+            capabilities = ["read"]
+          }
+          EOF
+          vault write auth/kubernetes/role/vault-gcr-secrets \
+            bound_service_account_names="vault-gcr-secrets" \
+            bound_service_account_namespaces="$MY_NAMESPACE" \
+            policies=vault-gcr-secrets ttl=24h
+
+      - name: Install vault-gcr-secrets
+        run: |
+          kubectl create namespace "$MY_NAMESPACE"
+          helm upgrade --install vault-gcr-secrets ./charts/vault-gcr-secrets \
+            --namespace "$MY_NAMESPACE" \
+            --set vault.address="http://vault.vault.svc.cluster.local:8200" \
+            --set vault.authMethod=kubernetes \
+            --set vault.authMountPath=auth/kubernetes \
+            --set vault.kubernetesRole=vault-gcr-secrets \
+            --set vault.gcpSecretPath=gcp/vault-gcr-secret/key
