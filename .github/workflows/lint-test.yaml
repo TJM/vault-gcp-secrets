@@ -3,7 +3,7 @@ name: Lint and Test Charts
 on: pull_request
 
 jobs:
-  lint-test:
+  lint_test:
     runs-on: ubuntu-latest
     env:
       CT_TARGET_BRANCH: main
@@ -50,6 +50,12 @@ jobs:
         uses: container-tools/kind-action@v1
         if: steps.list-changed.outputs.changed == 'true'
 
+      - name: Build Docker Image for local testing
+        run: |
+          docker build -t $KIND_REGISTRY/vault-gcr-secrets:test .
+          docker push $KIND_REGISTRY/vault-gcr-secrets:test
+
+
       - name: Install Vault Service
         run: |
           kubectl create namespace vault
@@ -59,14 +65,14 @@ jobs:
             --version=0.18.0 \
             --set server.dev.enabled=true \
             --set injector.enabled=false
-          kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=180s
+          kubectl wait pod/vault-0 --namespace=vault  --for=condition=Ready --timeout=30s
 
       - name: Configure vault for kubernetes authentication
         env:
           VAULT_AUTH_NAMESPACE: kube-system
         run: |
           kubectl port-forward --namespace vault vault-0 8200 &
-          sleep 10s
+          sleep 2s
           vault login root
           kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth
           kubectl create clusterrolebinding vault-auth-kube \
@@ -85,17 +91,22 @@ jobs:
             token_reviewer_jwt="$SA_JWT_TOKEN" \
             kubernetes_host="https://kubernetes.default.svc" \
             kubernetes_ca_cert="$SA_CA_CRT" \
-            issuer="https://kubernetes.default.svc.cluster.local"
+            issuer="https://kubernetes.default.svc.cluster.local" \
+            token_ttl=900 \
+            token_max_ttl=86400
 
       - name: Setup GCP secrets engine
         run: |
           vault secrets enable gcp
-          vault write gcp/config credentials='${{ secrets.GCP_TEST_ACCOUNT }}'
+          vault write gcp/config \
+            credentials='${{ secrets.GCP_TEST_ACCOUNT }}' \
+            ttl=300 \
+            max_ttl=1800
           vault write gcp/roleset/vault-gcr-secrets \
             project="vault-gcr-secrets-6969" \
             secret_type="service_account_key" \
             bindings=-<<EOF
-            resource "//cloudresourcemanager.googleapis.com/projects/my-project" {
+            resource "//cloudresourcemanager.googleapis.com/projects/vault-gcr-secrets-6969" {
               roles = ["roles/viewer"]
             }
           EOF
@@ -103,22 +114,42 @@ jobs:
       - name: Setup Vault GCR Secrets Policy and Role
         run: |
           cat <<EOF | vault policy write vault-gcr-secrets -
-          path "gcp/vault-gcr-secret/key" {
+          path "gcp/key/vault-gcr-secrets" {
             capabilities = ["read"]
           }
           EOF
           vault write auth/kubernetes/role/vault-gcr-secrets \
             bound_service_account_names="vault-gcr-secrets" \
             bound_service_account_namespaces="$MY_NAMESPACE" \
-            policies=vault-gcr-secrets ttl=24h
+            policies=vault-gcr-secrets \
+            ttl=300
 
       - name: Install vault-gcr-secrets
         run: |
           kubectl create namespace "$MY_NAMESPACE"
           helm upgrade --install vault-gcr-secrets ./charts/vault-gcr-secrets \
             --namespace "$MY_NAMESPACE" \
+            --set image.repository="$KIND_REGISTRY/vault-gcr-secrets" \
+            --set image.tag=test \
             --set vault.address="http://vault.vault.svc.cluster.local:8200" \
             --set vault.authMethod=kubernetes \
             --set vault.authMountPath=auth/kubernetes \
             --set vault.kubernetesRole=vault-gcr-secrets \
-            --set vault.gcpSecretPath=gcp/vault-gcr-secret/key
+            --set vault.gcpSecretPath=gcp/key/vault-gcr-secrets
+          kubectl wait deploy/vault-gcr-secrets --namespace=$MY_NAMESPACE --for=condition=available --timeout=30s
+
+      - name: Cleanup GCP Roleset (service accounts)
+        if: ${{ always() }}
+        run: |
+          helm delete vault-gcr-secrets --namespace "$MY_NAMESPACE"
+          vault delete gcp/roleset/vault-gcr-secrets
+          sleep 15 # Give vault time to cleanup
+
+      - name: Show Pod Status and Logs
+        if: ${{ always() }}
+        run: |
+          kubectl get pods --namespace vault
+          kubectl logs --namespace=vault vault-0
+          kubectl get pods --namespace $MY_NAMESPACE
+          kubectl describe pods --namespace $MY_NAMESPACE
+          kubectl logs --namespace=$MY_NAMESPACE -l app.kubernetes.io/instance=vault-gcr-secrets

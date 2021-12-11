@@ -1,3 +1,5 @@
+# Values for vault-gcr-secrets
+
 replicaCount: 1
 deploymentStrategy: {}
 
@@ -71,10 +73,17 @@ environmentVars: []
 # overwritten with 'VAULT_TOKEN_MAX_TTL').
 #
 vault:
+  ## Vault Address, eg: http://localhost:8200
   address: ""
+
+  ## number of retries before exiting in error (this helps prevent running out of leases)
   numRetries: 3
+
+  ## Vault authMethod (currently supported values are `appRole` or `kubernetes` (maybe `token`))
   authMethod: token
+  # If null, defaults to `auth/authMethod`
   authMountPath: ~
+
   credentialSecretName: ~
   tokenPath: ""
   kubernetesRole: vault-gcr-secrets
@@ -82,9 +91,24 @@ vault:
 
 ## K8s Destination Secret
 secret:
+  # Resulting name of the kubernetes secret
   name: gcr-secret
+
+  # Secret Type
+  type: kubernetes.io/dockerconfigjson
+
+  ## what values to pull from the vault secret (inside with secret <gcpSecretPath>)
+  template: base64Decode .Data.private_key_data
+
+  ## Set a custom template command. The template output will be written to /dev/shm/key.json
+  # customTemplateCommand: |
+  #   kubectl create secret {{ .Values.secret.type }} "{{ .Values.secret.name }}" --from-file={{ .Values.secret.key }}=/dev/shm/key.json --dry-run=client -o yaml | kubectl apply -f -
+  #   kubectl describe secret {{ .Values.secret.name }}
+
+  ## For docker-registry secret.type, these parameters will be used
   dockerServer: gcr.io
   dockerUsername: _json_key
+  dockerEmail: not.used@example.com
 
 rbac:
   create: true

@@ -48,7 +48,7 @@ data:
       error_on_missing_key = true
       source      = "/srv/vault-agent/template.ctmpl"
       destination = "/dev/shm/key.json"
-      command = "bash -c 'kubectl create secret docker-registry \"{{ .Values.secret.name }}\" --docker-server \"{{ .Values.secret.dockerServer }}\" --docker-username \"{{ .Values.secret.dockerUsername }}\" --docker-email \"$(jq -r .client_email /dev/shm/key.json)\" --docker-password \"$(cat /dev/shm/key.json)\" --dry-run=client -o yaml | kubectl apply -f -'"
+      command = "bash /srv/vault-agent/template-command.sh"
     }
 
     template_config {
@@ -57,5 +57,21 @@ data:
 
   template.ctmpl: |
     {{ "{{" }} with secret "{{ .Values.vault.gcpSecretPath }}" {{ "}}" }}
-    {{ "{{" }} base64Decode .Data.private_key_data {{ "}}" }}
+    {{ "{{" }} {{ .Values.secret.template }} {{ "}}" }}
     {{ "{{" }} end {{ "}}" }}
+
+  template-command.sh: |
+    {{- if .Values.secret.customTemplateCommand }}
+      {{ tpl .Values.secret.customTemplateCommand . | nindent 4 }}
+    {{- else if eq .Values.secret.type "kubernetes.io/dockerconfigjson" }}
+    kubectl create secret docker-registry "{{ .Values.secret.name }}" \
+      --docker-server "{{ .Values.secret.dockerServer }}" \
+      --docker-username "{{ .Values.secret.dockerUsername }}" \
+      --docker-email "{{ .Values.secret.dockerEmail }}" \
+      --docker-password "$(cat /dev/shm/key.json)" \
+      --dry-run=client -o yaml | kubectl replace -f -
+    {{- else }}
+    kubectl create secret generic "{{ .Values.secret.name }}" \
+    --from-file={{ .Values.secret.key }}=/dev/shm/key.json \
+    --dry-run=client -o yaml | kubectl replace -f -
+    {{- end }}
