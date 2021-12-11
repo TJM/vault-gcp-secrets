@@ -5,7 +5,7 @@ deploymentStrategy: {}
 
 image:
   repository: quay.io/tommydavita/vault-gcr-secrets
-  tag: v0.1.5
+  tag: v0.3.0
   pullPolicy: IfNotPresent
   volumeMounts: []
     # - name: ca
