@@ -15,6 +15,9 @@ vault write gcp/roleset/vault-gcr-secrets \
   }
 EOF
 
+SERVICE_ACCOUNT_EMAIL=$(vault read -field service_account_email gcp/roleset/vault-gcr-secrets)
+echo "::set-output name=service_account_email::${SERVICE_ACCOUNT_EMAIL}"
+
 cat <<EOF | vault policy write vault-gcr-secrets -
 path "gcp/key/vault-gcr-secrets" {
   capabilities = ["read"]

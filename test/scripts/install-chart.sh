@@ -35,6 +35,10 @@ kubectl wait pod -l app.kubernetes.io/instance=vault-gcr-secrets \
   --for=condition=Ready \
   --timeout=30s
 
-sleep 5
+sleep 10
+
+kubectl get pods --namespace $TARGET_NAMESPACE
+
+kubectl logs --namespace=$TARGET_NAMESPACE -l app.kubernetes.io/instance=vault-gcr-secrets
 
 kubectl describe secret gcr-secret --namespace=$TARGET_NAMESPACE

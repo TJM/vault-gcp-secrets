@@ -18,7 +18,10 @@ jobs:
 
     env:
       VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_AUTH_NAMESPACE: kube-system
       TARGET_NAMESPACE: gcp-secrets
+      AUTH_METHOD: ${{ matrix.auth }}
+      SECRET_TYPE: ${{ matrix.secretType }}
 
     steps:
       - name: Checkout
@@ -54,23 +57,24 @@ jobs:
         run: ./test/scripts/vault-install.sh
 
       - name: Configure ${{ matrix.auth }} Vault authentication
-        env:
-          VAULT_AUTH_NAMESPACE: kube-system
         run: ./test/scripts/vault-auth-${{ matrix.auth }}.sh
 
       - name: Configure Vault ${{ matrix.auth }} Role
         run: ./test/scripts/vault-role-${{ matrix.auth }}.sh
 
       - name: Setup GCP secrets engine
+        id: gcp-secrets
         env:
           GCP_CREDENTIALS: ${{ secrets.GCP_TEST_ACCOUNT }}
         run: ./test/scripts/vault-gcp-secrets.sh
 
       - name: Install vault-gcr-secrets
-        env:
-          AUTH_METHOD: ${{ matrix.auth }}
-          SECRET_TYPE: ${{ matrix.secretType }}
         run: ./test/scripts/install-chart.sh
+
+      - name: Verify Secret
+        env:
+          SERVICE_ACCOUNT_EMAIL: ${{ steps.gcp-secrets.outputs.service_account_email }}
+        run: ./test/scripts/verify-secret.sh
 
       - name: Show Pod Status and Logs
         if: ${{ always() }}
