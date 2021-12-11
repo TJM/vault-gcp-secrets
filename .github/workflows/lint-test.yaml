@@ -138,6 +138,13 @@ jobs:
             --set vault.gcpSecretPath=gcp/key/vault-gcr-secrets
           kubectl wait deploy/vault-gcr-secrets --namespace=$MY_NAMESPACE --for=condition=available --timeout=30s
 
+      - name: Cleanup GCP Roleset (service accounts)
+        if: ${{ always() }}
+        run: |
+          helm delete vault-gcr-secrets --namespace "$MY_NAMESPACE"
+          vault delete gcp/roleset/vault-gcr-secrets
+          sleep 15 # Give vault time to cleanup
+
       - name: Show Pod Status and Logs
         if: ${{ always() }}
         run: |
