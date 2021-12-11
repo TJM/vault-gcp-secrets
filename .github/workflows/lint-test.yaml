@@ -137,3 +137,12 @@ jobs:
             --set vault.kubernetesRole=vault-gcr-secrets \
             --set vault.gcpSecretPath=gcp/key/vault-gcr-secrets
           kubectl wait deploy/vault-gcr-secrets --namespace=$MY_NAMESPACE --for=condition=available --timeout=30s
+
+      - name: Show Pod Status and Logs
+        if: ${{ always() }}
+        run: |
+          kubectl get pods --namespace vault
+          kubectl logs --namespace=vault vault-0
+          kubectl get pods --namespace $MY_NAMESPACE
+          kubectl describe pods --namespace $MY_NAMESPACE
+          kubectl logs --namespace=$MY_NAMESPACE -l app.kubernetes.io/instance=vault-gcr-secrets
