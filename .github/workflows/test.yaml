@@ -21,10 +21,6 @@ jobs:
         with:
           version: v3.4.0
 
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-
       - name: Setup Vault
         run: |
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
@@ -34,27 +30,14 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.1.0
 
-      - name: Run chart-testing (list-changed)
-        id: list-changed
-        run: |
-          changed=$(ct list-changed)
-          if [[ -n "$changed" ]]; then
-            echo "::set-output name=changed::true"
-          fi
-
-      - name: Run chart-testing (lint)
-        run: ct lint
-
       - name: Create KIND cluster with Registry
         # uses: helm/kind-action@v1.2.0
         uses: container-tools/kind-action@v1
-        # if: steps.list-changed.outputs.changed == 'true'
 
       - name: Build Docker Image for local testing
         run: |
           docker build -t $KIND_REGISTRY/vault-gcr-secrets:test .
           docker push $KIND_REGISTRY/vault-gcr-secrets:test
-
 
       - name: Install Vault Service
         run: |
@@ -110,9 +93,6 @@ jobs:
               roles = ["roles/viewer"]
             }
           EOF
-
-      - name: Setup Vault GCR Secrets Policy and Role
-        run: |
           cat <<EOF | vault policy write vault-gcr-secrets -
           path "gcp/key/vault-gcr-secrets" {
             capabilities = ["read"]
