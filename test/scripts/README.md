@@ -25,6 +25,7 @@ They can be run directly as well for testing, but require some environment varia
 export VAULT_ADDR='http://127.0.0.1:8200'
 export VAULT_AUTH_NAMESPACE='kube-system'
 export TARGET_NAMESPACE='gcr-secrets'
+export KIND_REGISTRY=''
 ```
 
 * Set `GCP_CREDENTIALS` to the contents of the service account key above.
