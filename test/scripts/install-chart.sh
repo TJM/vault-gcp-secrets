@@ -1,11 +1,21 @@
-#!/bin/bash -xe
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+set -o pipefail
+set -x
+IFS=$'\n\t'
+
 
 ## Set SECRET_TYPE from simple 'docker'
-[[ $SECRET_TYPE = 'docker' ]] && SECRET_TYPE='kubernetes.io/dockerconfigjson'
+if [[ $SECRET_TYPE = 'docker' ]]; then
+  SECRET_TYPE='kubernetes.io/dockerconfigjson'
+else
+  SECRET_TYPE='Opaque'
+fi
 
 ## Set AUTH Options
 if [[ $AUTH_METHOD = 'kubernetes' ]]; then
-  AUTH_OPTIONS='--set vault.authkubernetesRole=vault-gcr-secrets'
+  AUTH_OPTIONS='--set vault.kubernetesRole=vault-gcr-secrets'
 elif [[ $AUTH_METHOD = 'approle' ]]; then
   AUTH_OPTIONS='--set vault.credentialSecretName=vault-creds'
 else
@@ -16,15 +26,15 @@ fi
 ## Set Image options
 if [[ -n $KIND_REGISTRY ]]; then
   IMAGE_OPTIONS="--set image.repository=$KIND_REGISTRY/vault-gcr-secrets --set image.tag=test"
+else
+  IMAGE_OPTIONS=""
 fi
 
 helm upgrade --install vault-gcr-secrets ./charts/vault-gcr-secrets \
   --namespace "$TARGET_NAMESPACE" \
   --set vault.address="http://vault.vault.svc.cluster.local:8200" \
   --set vault.authMethod=${AUTH_METHOD} \
-  --set vault.authMountPath=auth/${AUTH_METHOD} \
   --set vault.gcpSecretPath=gcp/key/vault-gcr-secrets \
-  --set vault.auth.kubernetesRole=${TARGET_ROLE} \
   --set secret.type=${SECRET_TYPE} \
   $AUTH_OPTIONS \
   $IMAGE_OPTIONS

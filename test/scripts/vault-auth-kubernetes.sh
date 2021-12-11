@@ -1,4 +1,10 @@
-#!/bin/bash -xe
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+set -o pipefail
+set -x
+IFS=$'\n\t'
+
 kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth
 
 kubectl create clusterrolebinding vault-auth-kube \

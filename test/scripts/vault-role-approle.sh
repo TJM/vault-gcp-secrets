@@ -1,4 +1,10 @@
-#!/bin/bash -xe
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+set -o pipefail
+set -x
+IFS=$'\n\t'
+
 ## Vault Create Role of type Approle
 vault write auth/approle/role/vault-gcr-secrets \
   policies=vault-gcr-secrets \
