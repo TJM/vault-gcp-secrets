@@ -48,7 +48,7 @@ data:
       error_on_missing_key = true
       source      = "/srv/vault-agent/template.ctmpl"
       destination = "/dev/shm/key.json"
-      command = "bash -xe /srv/vault-agent/template-command.sh"
+      command = "bash /srv/vault-agent/template-command.sh"
     }
 
     template_config {
