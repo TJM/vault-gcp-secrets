@@ -128,4 +128,4 @@ jobs:
             --set vault.authMountPath=auth/kubernetes \
             --set vault.kubernetesRole=vault-gcr-secrets \
             --set vault.gcpSecretPath=gcp/key/vault-gcr-secrets
-          kubectl wait deploy/vault-gcr-secrets --namespace=$MY_NAMESPACE --for=condition=Ready --timeout=30s
+          kubectl wait deploy/vault-gcr-secrets --namespace=$MY_NAMESPACE --for=condition=available --timeout=30s
