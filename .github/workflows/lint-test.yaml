@@ -48,7 +48,7 @@ jobs:
       - name: Create KIND cluster with Registry
         # uses: helm/kind-action@v1.2.0
         uses: container-tools/kind-action@v1
-        if: steps.list-changed.outputs.changed == 'true'
+        # if: steps.list-changed.outputs.changed == 'true'
 
       - name: Build Docker Image for local testing
         run: |
