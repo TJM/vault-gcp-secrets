@@ -1,4 +1,4 @@
-name: Lint and Test Charts
+name: Lint Chart and Dockerfile
 
 on: pull_request
 
@@ -7,8 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CT_TARGET_BRANCH: main
-      VAULT_ADDR: http://127.0.0.1:8200
-      MY_NAMESPACE: vault-gcr-secrets
 
     steps:
       - name: Checkout
