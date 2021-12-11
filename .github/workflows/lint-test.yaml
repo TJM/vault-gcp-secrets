@@ -50,6 +50,12 @@ jobs:
         uses: container-tools/kind-action@v1
         if: steps.list-changed.outputs.changed == 'true'
 
+      - name: Build Docker Image for local testing
+        run: |
+          docker build -t $KIND_REGISTRY/vault-gcr-secrets:test .
+          docker push $KIND_REGISTRY/vault-gcr-secrets:test
+
+
       - name: Install Vault Service
         run: |
           kubectl create namespace vault
@@ -123,6 +129,8 @@ jobs:
           kubectl create namespace "$MY_NAMESPACE"
           helm upgrade --install vault-gcr-secrets ./charts/vault-gcr-secrets \
             --namespace "$MY_NAMESPACE" \
+            --set image.registry="$KIND_REGISTRY/vault-gcr-secrets" \
+            --set image.tag=test \
             --set vault.address="http://vault.vault.svc.cluster.local:8200" \
             --set vault.authMethod=kubernetes \
             --set vault.authMountPath=auth/kubernetes \
