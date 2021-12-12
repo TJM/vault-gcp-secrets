@@ -49,14 +49,6 @@ spec:
             - -config
             - /srv/vault-agent/agent.hcl
           env:
-            {{- if .Values.vault.address }}
-            - name: VAULT_ADDRESS
-              value: {{ .Values.vault.address | quote }}
-            {{- end }}
-            {{- if .Values.vault.tokenPath }}
-            - name: VAULT_TOKEN_PATH
-              value: {{ .Values.vault.tokenPath | quote }}
-            {{- end }}
             {{- with .Values.environmentVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

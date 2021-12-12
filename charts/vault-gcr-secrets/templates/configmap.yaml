@@ -72,6 +72,6 @@ data:
       --dry-run=client -o yaml | kubectl replace -f -
     {{- else }}
     kubectl create secret generic "{{ .Values.secret.name }}" \
-    --from-file={{ .Values.secret.key }}=/dev/shm/key.json \
-    --dry-run=client -o yaml | kubectl replace -f -
+      --from-file={{ .Values.secret.key }}=/dev/shm/key.json \
+      --dry-run=client -o yaml | kubectl replace -f -
     {{- end }}

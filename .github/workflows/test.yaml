@@ -1,0 +1,85 @@
+name: Test Container and Helm Chart
+
+on: pull_request
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        auth:
+          - kubernetes
+          - approle
+        secretType:
+          - docker
+          - generic
+
+    env:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_AUTH_NAMESPACE: kube-system
+      TARGET_NAMESPACE: gcp-secrets
+      AUTH_METHOD: ${{ matrix.auth }}
+      SECRET_TYPE: ${{ matrix.secretType }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+
+      - name: Setup Vault
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install vault
+
+      - name: Create KIND cluster with Registry
+        # uses: helm/kind-action@v1.2.0
+        uses: container-tools/kind-action@v1
+
+      - name: Create Kubernetes namespace
+        id: kube-target-namespace
+        run: kubectl create namespace $TARGET_NAMESPACE
+
+      - name: Build Docker Image for local testing
+        run: |
+          docker build -t $KIND_REGISTRY/vault-gcr-secrets:test .
+          docker push $KIND_REGISTRY/vault-gcr-secrets:test
+
+      - name: Install Vault Service
+        run: ./test/scripts/vault-install.sh
+
+      - name: Configure ${{ matrix.auth }} Vault authentication
+        run: ./test/scripts/vault-auth-${{ matrix.auth }}.sh
+
+      - name: Configure Vault ${{ matrix.auth }} Role
+        run: ./test/scripts/vault-role-${{ matrix.auth }}.sh
+
+      - name: Setup GCP secrets engine
+        id: gcp-secrets
+        env:
+          GCP_CREDENTIALS: ${{ secrets.GCP_TEST_ACCOUNT }}
+        run: ./test/scripts/vault-gcp-secrets.sh
+
+      - name: Install vault-gcr-secrets
+        run: ./test/scripts/install-chart.sh
+
+      - name: Verify Secret
+        env:
+          SERVICE_ACCOUNT_EMAIL: ${{ steps.gcp-secrets.outputs.service_account_email }}
+        run: ./test/scripts/verify-secret.sh
+
+      - name: Show Pod Status and Logs
+        if: ${{ always() }}
+        run: ./test/scripts/end-collect-data.sh
+
+      - name: Cleanup GCP Roleset (service accounts)
+        if: ${{ always() }}
+        run: ./test/scripts/end-cleanup.sh

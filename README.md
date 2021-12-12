@@ -9,7 +9,7 @@ NOTE: This is alpha quality, use it at your own risk.
 ## Prerequisites
 
 * Google Cloud Platform (GCP) Account setup with Vault
-* AppRole, Token or Kubernetes authentication to Vault
+* AppRole or Kubernetes authentication to Vault
 
 ## Installation
 
