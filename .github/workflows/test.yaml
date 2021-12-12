@@ -50,8 +50,8 @@ jobs:
 
       - name: Build Docker Image for local testing
         run: |
-          docker build -t $KIND_REGISTRY/vault-gcr-secrets:test .
-          docker push $KIND_REGISTRY/vault-gcr-secrets:test
+          docker build -t $KIND_REGISTRY/vault-gcp-secrets:test .
+          docker push $KIND_REGISTRY/vault-gcp-secrets:test
 
       - name: Install Vault Service
         run: ./test/scripts/vault-install.sh
@@ -68,7 +68,7 @@ jobs:
           GCP_CREDENTIALS: ${{ secrets.GCP_TEST_ACCOUNT }}
         run: ./test/scripts/vault-gcp-secrets.sh
 
-      - name: Install vault-gcr-secrets
+      - name: Install vault-gcp-secrets
         run: ./test/scripts/install-chart.sh
 
       - name: Verify Secret

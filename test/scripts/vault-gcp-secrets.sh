@@ -12,20 +12,20 @@ vault write gcp/config \
   ttl=300 \
   max_ttl=1800
 
-vault write gcp/roleset/vault-gcr-secrets \
-  project="vault-gcr-secrets-6969" \
+vault write gcp/roleset/vault-gcp-secrets \
+  project="vault-gcp-secrets-6969" \
   secret_type="service_account_key" \
   bindings=-<<EOF
-  resource "//cloudresourcemanager.googleapis.com/projects/vault-gcr-secrets-6969" {
+  resource "//cloudresourcemanager.googleapis.com/projects/vault-gcp-secrets-6969" {
     roles = ["roles/viewer"]
   }
 EOF
 
-SERVICE_ACCOUNT_EMAIL=$(vault read -field service_account_email gcp/roleset/vault-gcr-secrets)
+SERVICE_ACCOUNT_EMAIL=$(vault read -field service_account_email gcp/roleset/vault-gcp-secrets)
 echo "::set-output name=service_account_email::${SERVICE_ACCOUNT_EMAIL}"
 
-cat <<EOF | vault policy write vault-gcr-secrets -
-path "gcp/key/vault-gcr-secrets" {
+cat <<EOF | vault policy write vault-gcp-secrets -
+path "gcp/key/vault-gcp-secrets" {
   capabilities = ["read"]
 }
 EOF

@@ -6,9 +6,9 @@ set -x
 IFS=$'\n\t'
 
 if [ "${SECRET_TYPE}" = "docker" ]; then
-  SECRET_EMAIL=$(kubectl get secret gcr-secret --namespace ${TARGET_NAMESPACE} -o jsonpath="{.data.\.dockerconfigjson}" | base64 --decode | jq -r '.auths."gcr.io".password | fromjson .client_email')
+  SECRET_EMAIL=$(kubectl get secret gcp-secret --namespace ${TARGET_NAMESPACE} -o jsonpath="{.data.\.dockerconfigjson}" | base64 --decode | jq -r '.auths."gcr.io".password | fromjson .client_email')
 else
-  SECRET_EMAIL=$(kubectl get secret gcr-secret --namespace ${TARGET_NAMESPACE} -o jsonpath="{.data.key\.json}" | base64 --decode | jq -r '.client_email')
+  SECRET_EMAIL=$(kubectl get secret gcp-secret --namespace ${TARGET_NAMESPACE} -o jsonpath="{.data.key\.json}" | base64 --decode | jq -r '.client_email')
 fi
 
 

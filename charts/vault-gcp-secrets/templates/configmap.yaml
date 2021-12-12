@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "vault-gcr-secrets.fullname" . }}-config
+  name: {{ template "vault-gcp-secrets.fullname" . }}-config
   namespace: {{ .Release.Namespace }}
   labels:
-{{ include "vault-gcr-secrets.labels" . | indent 4 }}
+{{ include "vault-gcp-secrets.labels" . | indent 4 }}
   {{- if .Values.podAnnotations }}
   annotations:
-{{ include "vault-gcr-secrets.annotations" . | indent 4 }}
+{{ include "vault-gcp-secrets.annotations" . | indent 4 }}
   {{- end }}
 data:
   agent.hcl: |
