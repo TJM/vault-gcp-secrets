@@ -12,11 +12,14 @@ vault write gcp/config \
   ttl=300 \
   max_ttl=1800
 
+PROJECT_ID=$(echo "${GCP_CREDENTIALS}" | jq -r '.project_id')
+echo "::set-output name=project_id::${PROJECT_ID}"
+
 vault write gcp/roleset/vault-gcp-secrets \
-  project="vault-gcp-secrets-6969" \
+  project="${PROJECT_ID}" \
   secret_type="service_account_key" \
   bindings=-<<EOF
-  resource "//cloudresourcemanager.googleapis.com/projects/vault-gcp-secrets-6969" {
+  resource "//cloudresourcemanager.googleapis.com/projects/${PROJECT_ID}" {
     roles = ["roles/viewer"]
   }
 EOF
