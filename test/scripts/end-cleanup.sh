@@ -5,6 +5,6 @@ set -o pipefail
 set -x
 IFS=$'\n\t'
 
-helm delete vault-gcr-secrets --namespace "$TARGET_NAMESPACE"
-vault delete gcp/roleset/vault-gcr-secrets
+helm delete vault-gcp-secrets --namespace "$TARGET_NAMESPACE"
+vault delete gcp/roleset/vault-gcp-secrets
 sleep 15 # Give vault time to cleanup

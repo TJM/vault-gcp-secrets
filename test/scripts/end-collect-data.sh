@@ -14,7 +14,7 @@ kubectl get pods --namespace $TARGET_NAMESPACE
 echo -e '\n****************************************\n'
 kubectl describe pods --namespace $TARGET_NAMESPACE
 echo -e '\n****************************************\n'
-kubectl logs --namespace=$TARGET_NAMESPACE -l app.kubernetes.io/instance=vault-gcr-secrets
+kubectl logs --namespace=$TARGET_NAMESPACE -l app.kubernetes.io/instance=vault-gcp-secrets
 echo -e '\n****************************************\n'
 kubectl describe configmap --namespace=$TARGET_NAMESPACE
 echo -e '\n****************************************\n'

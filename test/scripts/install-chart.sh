@@ -11,7 +11,7 @@ HELM_OPTIONS=(
   --namespace "${TARGET_NAMESPACE}"
   --set "vault.address=http://vault.vault.svc.cluster.local:8200"
   --set "vault.authMethod=${AUTH_METHOD}"
-  --set "vault.gcpSecretPath=gcp/key/vault-gcr-secrets"
+  --set "vault.gcpSecretPath=gcp/key/vault-gcp-secrets"
 )
 
 ## Set SECRET_TYPE from simple 'docker'
@@ -23,7 +23,7 @@ fi
 
 ## Set AUTH Options
 if [ "${AUTH_METHOD}" = 'kubernetes' ]; then
-  HELM_OPTIONS+=(--set 'vault.kubernetesRole=vault-gcr-secrets')
+  HELM_OPTIONS+=(--set 'vault.kubernetesRole=vault-gcp-secrets')
 elif [ "${AUTH_METHOD}" = 'approle' ]; then
   HELM_OPTIONS+=(--set 'vault.credentialSecretName=vault-creds')
 else
@@ -34,12 +34,12 @@ fi
 ## Set Image options
 echo "KIND_REGISTRY=\'${KIND_REGISTRY}\'"
 if [ -n "$KIND_REGISTRY" ]; then
-  HELM_OPTIONS+=(--set "image.repository=${KIND_REGISTRY}/vault-gcr-secrets" --set 'image.tag=test')
+  HELM_OPTIONS+=(--set "image.repository=${KIND_REGISTRY}/vault-gcp-secrets" --set 'image.tag=test')
 fi
 
-helm upgrade --install vault-gcr-secrets ./charts/vault-gcr-secrets "${HELM_OPTIONS[@]}"
+helm upgrade --install vault-gcp-secrets ./charts/vault-gcp-secrets "${HELM_OPTIONS[@]}"
 
-kubectl wait pod -l app.kubernetes.io/instance=vault-gcr-secrets \
+kubectl wait pod -l app.kubernetes.io/instance=vault-gcp-secrets \
   --namespace=$TARGET_NAMESPACE \
   --for=condition=Ready \
   --timeout=30s
@@ -48,6 +48,6 @@ sleep 10
 
 kubectl get pods --namespace $TARGET_NAMESPACE
 
-kubectl logs --namespace=$TARGET_NAMESPACE -l app.kubernetes.io/instance=vault-gcr-secrets
+kubectl logs --namespace=$TARGET_NAMESPACE -l app.kubernetes.io/instance=vault-gcp-secrets
 
-kubectl describe secret gcr-secret --namespace=$TARGET_NAMESPACE
+kubectl describe secret gcp-secret --namespace=$TARGET_NAMESPACE

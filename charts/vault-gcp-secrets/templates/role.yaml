@@ -2,10 +2,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ template "vault-gcr-secrets.fullname" . }}
+  name: {{ template "vault-gcp-secrets.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-{{ include "vault-gcr-secrets.labels" . | indent 4 }}
+{{ include "vault-gcp-secrets.labels" . | indent 4 }}
 rules:
 - apiGroups:
   - ""

@@ -1,0 +1,9 @@
+apiVersion: v1
+name: vault-gcp-secrets
+description: Create and maintain Kubernetes secret from Vault GCP Secrets Engine with vault agent.
+home: https://github.com/TJM/vault-gcp-secrets
+# icon: https://raw.githubusercontent.com/TJM/vault-gcp-secrets/master/assets/logo.png
+maintainers:
+  - name: TJM  # Tommy McNeely
+version: 0.4.0
+appVersion: 0.4.0

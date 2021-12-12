@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "vault-gcr-secrets.name" -}}
+{{- define "vault-gcp-secrets.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "vault-gcr-secrets.fullname" -}}
+{{- define "vault-gcp-secrets.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,16 +27,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "vault-gcr-secrets.chart" -}}
+{{- define "vault-gcp-secrets.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "vault-gcr-secrets.labels" -}}
-app.kubernetes.io/name: {{ include "vault-gcr-secrets.name" . }}
-helm.sh/chart: {{ include "vault-gcr-secrets.chart" . }}
+{{- define "vault-gcp-secrets.labels" -}}
+app.kubernetes.io/name: {{ include "vault-gcp-secrets.name" . }}
+helm.sh/chart: {{ include "vault-gcp-secrets.chart" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- if .Values.podLabels }}
@@ -47,15 +47,15 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 matchLabels
 */}}
-{{- define "vault-gcr-secrets.matchLabels" -}}
-app.kubernetes.io/name: {{ include "vault-gcr-secrets.name" . }}
+{{- define "vault-gcp-secrets.matchLabels" -}}
+app.kubernetes.io/name: {{ include "vault-gcp-secrets.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
 Additional pod annotations
 */}}
-{{- define "vault-gcr-secrets.annotations" -}}
+{{- define "vault-gcp-secrets.annotations" -}}
 {{- if .Values.podAnnotations }}
 {{- toYaml .Values.podAnnotations }}
 {{- end }}
@@ -64,7 +64,7 @@ Additional pod annotations
 {{/*
 Additional test-connection pod annotations
 */}}
-{{- define "vault-gcr-secrets.testPodAnnotations" -}}
+{{- define "vault-gcp-secrets.testPodAnnotations" -}}
 {{- if .Values.testPodAnnotations }}
 {{- toYaml .Values.testPodAnnotations }}
 {{- end }}
@@ -73,7 +73,7 @@ Additional test-connection pod annotations
 {{/*
 Additional test-connection pod labels
 */}}
-{{- define "vault-gcr-secrets.testPodLabels" -}}
+{{- define "vault-gcp-secrets.testPodLabels" -}}
 {{- if .Values.testPodLabels }}
 {{- toYaml .Values.testPodLabels }}
 {{- end }}
@@ -82,9 +82,9 @@ Additional test-connection pod labels
 {{/*
 Create the name of the service account to use.
 */}}
-{{- define "vault-gcr-secrets.serviceAccountName" -}}
+{{- define "vault-gcp-secrets.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
-    {{ default (include "vault-gcr-secrets.fullname" .) .Values.serviceAccount.name }}
+    {{ default (include "vault-gcp-secrets.fullname" .) .Values.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
@@ -93,5 +93,5 @@ Create the name of the service account to use.
 {{/*
 Additional containers to add to the deployment
 */}}
-{{- define "vault-gcr-secrets.additionalContainers" -}}
+{{- define "vault-gcp-secrets.additionalContainers" -}}
 {{- end -}}
