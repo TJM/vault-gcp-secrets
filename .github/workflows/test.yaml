@@ -56,10 +56,10 @@ jobs:
       - name: Install Vault Service
         run: ./test/scripts/vault-install.sh
 
-      - name: Configure ${AUTH_METHOD} Vault authentication
+      - name: Configure Vault authentication
         run: ./test/scripts/vault-auth-${AUTH_METHOD}.sh
 
-      - name: Configure Vault ${AUTH_METHOD} Role
+      - name: Configure Vault Role
         run: ./test/scripts/vault-role-${AUTH_METHOD}.sh
 
       - name: Setup GCP secrets engine
@@ -77,7 +77,7 @@ jobs:
         run: ./test/scripts/verify-secret.sh
 
       - name: Show Pod Status and Logs
-        if: ${{ always() }}
+        if: ${{ failure() }}
         run: ./test/scripts/end-collect-data.sh
 
       - name: Cleanup GCP Roleset (service accounts)
