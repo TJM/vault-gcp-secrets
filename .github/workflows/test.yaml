@@ -56,11 +56,11 @@ jobs:
       - name: Install Vault Service
         run: ./test/scripts/vault-install.sh
 
-      - name: Configure ${{ matrix.auth }} Vault authentication
-        run: ./test/scripts/vault-auth-${{ matrix.auth }}.sh
+      - name: Configure ${AUTH_METHOD} Vault authentication
+        run: ./test/scripts/vault-auth-${AUTH_METHOD}.sh
 
-      - name: Configure Vault ${{ matrix.auth }} Role
-        run: ./test/scripts/vault-role-${{ matrix.auth }}.sh
+      - name: Configure Vault ${AUTH_METHOD} Role
+        run: ./test/scripts/vault-role-${AUTH_METHOD}.sh
 
       - name: Setup GCP secrets engine
         id: gcp-secrets
