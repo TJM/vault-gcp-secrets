@@ -62,7 +62,7 @@ data:
 
   template-command.sh: |
     {{- if .Values.secret.customTemplateCommand }}
-      {{ tpl .Values.secret.customTemplateCommand . | nindent 4 }}
+      {{- tpl .Values.secret.customTemplateCommand . | nindent 4 }}
     {{- else if eq .Values.secret.type "kubernetes.io/dockerconfigjson" }}
     kubectl create secret docker-registry "{{ .Values.secret.name }}" \
       --docker-server "{{ .Values.secret.dockerServer }}" \

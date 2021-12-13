@@ -9,7 +9,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: vault-gcp-secrets
+  name: {{ template "vault-gcp-secrets.fullname" . }}
 subjects:
   - apiGroup: ""
     kind: ServiceAccount
