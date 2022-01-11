@@ -1,4 +1,4 @@
-FROM vault:1.9.1
+FROM vault:1.9.2
 ARG KUBECTL_VERSION="stable"
 
 # Add more dependencies
