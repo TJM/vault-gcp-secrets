@@ -8,14 +8,12 @@ images from a private GCR repository.
 
 NOTE: We are using this code in the production environment. You may use it at your own risk.
 
-NOTE: This is alpha quality, use it at your own risk.
-
 | Value | Description | Default |
 | ----- | ----------- | ------- |
 | `replicaCount` | Number of replications which should be created. | `1` |
 | `deploymentStrategy` | Deployment strategy which should be used. | `{}` |
-| `image.repository` | The repository of the Docker image. | `quay.io/tommydavita/vault-gcp-secrets` |
-| `image.tag` | The tag of the Docker image which should be used. | `1.15.2` |
+| `image.repository` | The repository of the Docker image. | `ghcr.io/tjm/vault-gcp-secrets` |
+| `image.tag` | The tag of the Docker image which should be used. | `v1.9.4` |
 | `image.pullPolicy` | The pull policy for the Docker image, | `IfNotPresent` |
 | `image.volumeMounts` | Mount additional volumns to the container. | `[]` |
 | `imagePullSecrets` | Secrets which can be used to pull the Docker image. | `[]` |
