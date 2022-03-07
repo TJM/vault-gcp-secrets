@@ -5,5 +5,5 @@ home: https://github.com/TJM/vault-gcp-secrets
 # icon: https://raw.githubusercontent.com/TJM/vault-gcp-secrets/master/assets/logo.png
 maintainers:
   - name: TJM  # Tommy McNeely
-version: 0.7.0
-appVersion: 1.9.4
+version: 0.7.1
+appVersion: 1.9.4  # REMINDER: update README and values.yaml
