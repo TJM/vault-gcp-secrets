@@ -2,6 +2,19 @@ apiVersion: v1
 entries:
   vault-gcp-secrets:
   - apiVersion: v1
+    appVersion: 1.9.4
+    created: "2022-03-07T19:08:07.979212455Z"
+    description: Create and maintain Kubernetes secret from Vault GCP Secrets Engine
+      with vault agent.
+    digest: d90a4d989ceb9a83ca8ea87c09c202d04aec4a2c8bbf6e3374838d6113acac75
+    home: https://github.com/TJM/vault-gcp-secrets
+    maintainers:
+    - name: TJM
+    name: vault-gcp-secrets
+    urls:
+    - https://github.com/TJM/vault-gcp-secrets/releases/download/vault-gcp-secrets-0.7.0/vault-gcp-secrets-0.7.0.tgz
+    version: 0.7.0
+  - apiVersion: v1
     appVersion: 1.9.2
     created: "2022-01-11T00:26:23.64168338Z"
     description: Create and maintain Kubernetes secret from Vault GCP Secrets Engine
@@ -130,4 +143,4 @@ entries:
     urls:
     - https://github.com/TJM/vault-gcr-secrets/releases/download/vault-gcr-secrets-0.1.8/vault-gcr-secrets-0.1.8.tgz
     version: 0.1.8
-generated: "2022-01-11T00:26:23.641799681Z"
+generated: "2022-03-07T19:08:07.979395554Z"
