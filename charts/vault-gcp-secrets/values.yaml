@@ -5,7 +5,7 @@ deploymentStrategy: {}
 
 image:
   repository: ghcr.io/tjm/vault-gcp-secrets
-  tag: v1.9.4
+  tag: v1.10.0
   pullPolicy: IfNotPresent
   volumeMounts: []
     # - name: ca
