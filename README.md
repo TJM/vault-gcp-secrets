@@ -8,6 +8,8 @@ images from a private GCR repository.
 
 NOTE: We are using this code in the production environment. You may use it at your own risk.
 
+See helm chart readme: [charts/vault-gcp-secrets/README.md]<charts/vault-gcp-secrets/README.md>
+
 ## Prerequisites
 
 * Google Cloud Platform (GCP) Account setup with Vault
@@ -15,9 +17,9 @@ NOTE: We are using this code in the production environment. You may use it at yo
 
 ## Installation
 
-* helm repo add vault-gcp-secrets https://tjm.github.io/vault-gcp-secrets/
-* helm repo update
-* helm install vault-gcp-secrets/vault-gcp-secrets
+* `helm repo add vault-gcp-secrets https://tjm.github.io/vault-gcp-secrets/`
+* `helm repo update`
+* `helm install vault-gcp-secrets vault-gcp-secrets/vault-gcp-secrets`
 
 NOTE: You will most likely need to set some values, like authentication method, path, etc.
 

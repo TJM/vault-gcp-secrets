@@ -62,24 +62,6 @@ Additional pod annotations
 {{- end -}}
 
 {{/*
-Additional test-connection pod annotations
-*/}}
-{{- define "vault-gcp-secrets.testPodAnnotations" -}}
-{{- if .Values.testPodAnnotations }}
-{{- toYaml .Values.testPodAnnotations }}
-{{- end }}
-{{- end }}
-
-{{/*
-Additional test-connection pod labels
-*/}}
-{{- define "vault-gcp-secrets.testPodLabels" -}}
-{{- if .Values.testPodLabels }}
-{{- toYaml .Values.testPodLabels }}
-{{- end }}
-{{- end }}
-
-{{/*
 Create the name of the service account to use.
 */}}
 {{- define "vault-gcp-secrets.serviceAccountName" -}}

@@ -1,8 +1,5 @@
 # Values for vault-gcp-secrets
 
-replicaCount: 1
-deploymentStrategy: {}
-
 image:
   repository: ghcr.io/tjm/vault-gcp-secrets
   tag: v1.10.0
@@ -92,11 +89,6 @@ podSecurityContext: {}
 
 securityContext: {}
 
-# Annotations for the vault-gcp-secrets-test-connection pod
-testPodAnnotations: {}
-
-# Additional labels for the vault-gcp-secrets-test-connection pod
-testPodLabels: {}
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -123,3 +115,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+replicaCount: 1  # Don't change this
+deploymentStrategy: {}
