@@ -77,7 +77,7 @@ rbac:
 
 serviceAccount:
   create: true
-  name: vault-gcp-secrets
+  name: ~
 
 # Annotations for vault-gcp-secrets pod(s).
 podAnnotations: {}
