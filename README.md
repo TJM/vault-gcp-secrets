@@ -8,7 +8,7 @@ images from a private GCR repository.
 
 NOTE: We are using this code in the production environment. You may use it at your own risk.
 
-See helm chart readme: [charts/vault-gcp-secrets/README.md]<charts/vault-gcp-secrets/README.md>
+See helm chart readme: [charts/vault-gcp-secrets/README.md](charts/vault-gcp-secrets/README.md)
 
 ## Prerequisites
 
