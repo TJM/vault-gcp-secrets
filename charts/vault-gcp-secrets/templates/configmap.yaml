@@ -24,6 +24,9 @@ data:
           {{- if .Values.vault.authMountPath }}
           mount_path = "{{ .Values.vault.authMountPath }}"
           {{- end }}
+          {{- if .Values.vault.namespace }}
+          namespace = "{{ .Values.vault.namespace }}"
+          {{- end }}
 
           config = {
           {{- if eq .Values.vault.authMethod "approle" }}

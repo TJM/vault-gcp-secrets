@@ -37,7 +37,7 @@ vault:
 
   ## number of retries before exiting in error (this helps prevent running out of leases)
   numRetries: 3
-
+  namespace: ~
   ## Vault authMethod (currently supported values are `appRole` or `kubernetes`)
   authMethod: kubernetes
   # If null, VAULT defaults to `auth/authMethod`
