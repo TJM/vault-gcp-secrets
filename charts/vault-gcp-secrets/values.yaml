@@ -2,18 +2,11 @@
 
 image:
   repository: ghcr.io/tjm/vault-gcp-secrets
-  tag: v1.11.0
+  tag: v1.11.2
   pullPolicy: IfNotPresent
   volumeMounts: []
-    # - name: ca
-    #   mountPath: "/etc/vault-gcp-secrets"
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-environmentVars: []
-
+  # - name: ca
+  #   mountPath: "/etc/vault-gcp-secrets"
 
 # Set the address for vault (by default we assume you are running a dev
 # instance of vault in the same namespace as the operator) and specify the
@@ -35,9 +28,12 @@ vault:
   ## Vault Address, eg: http://localhost:8200
   address: "http://vault:8200"
 
+  # Vault Namespace (Enterprise Only)
+  namespace: ~
+
   ## number of retries before exiting in error (this helps prevent running out of leases)
   numRetries: 3
-  namespace: ~
+
   ## Vault authMethod (currently supported values are `appRole` or `kubernetes`)
   authMethod: kubernetes
   # If null, VAULT defaults to `auth/authMethod`
@@ -79,6 +75,8 @@ serviceAccount:
   create: true
   name: ~
 
+environmentVars: []
+
 # Annotations for vault-gcp-secrets pod(s).
 podAnnotations: {}
 
@@ -89,26 +87,29 @@ podSecurityContext: {}
 
 securityContext: {}
 
-
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
 
 volumes: []
-  # - name: ca
-  #   secret:
-  #     secretName: vault-gcp-secrets-ca
-  #     items:
-  #       - key: ca.pem
-  #         path: ca.pem
+# - name: ca
+#   secret:
+#     secretName: vault-gcp-secrets-ca
+#     items:
+#       - key: ca.pem
+#         path: ca.pem
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
 
 nodeSelector: {}
 
@@ -116,5 +117,6 @@ tolerations: []
 
 affinity: {}
 
-replicaCount: 1  # Don't change this
+# Don't change the replicaCount, this tool is not designed to run with multipe replicas.
+replicaCount: 1
 deploymentStrategy: {}
