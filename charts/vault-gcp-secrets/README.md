@@ -11,7 +11,7 @@ NOTE: We are using this code in the production environment. You may use it at yo
 | Value | Description | Default |
 | ----- | ----------- | ------- |
 | `image.repository` | The repository of the Docker image. | `ghcr.io/tjm/vault-gcp-secrets` |
-| `image.tag` | The tag of the Docker image which should be used. | `v1.11.0` |
+| `image.tag` | The tag of the Docker image which should be used. | `v1.11.2` |
 | `image.pullPolicy` | The pull policy for the Docker image, | `IfNotPresent` |
 | `image.volumeMounts` | Mount additional volumns to the container. | `[]` |
 | `imagePullSecrets` | Secrets which can be used to pull the Docker image. | `[]` |
