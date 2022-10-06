@@ -2,7 +2,8 @@
 
 image:
   repository: ghcr.io/tjm/vault-gcp-secrets
-  tag: v1.11.2
+  # empty tag uses appVersion
+  tag: ""
   pullPolicy: IfNotPresent
   volumeMounts: []
   # - name: ca
