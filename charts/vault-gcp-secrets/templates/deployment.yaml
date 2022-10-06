@@ -72,14 +72,16 @@ spec:
           livenessProbe:
             exec:
               command:
-                - cat
-                - /dev/shm/.agent-token
+                - grep
+                - -q
+                - "."
                 - /dev/shm/key.json
           readinessProbe:
             exec:
               command:
-                - cat
-                - /dev/shm/.agent-token
+                - grep
+                - -q
+                - "."
                 - /dev/shm/key.json
           {{- with .Values.resources }}
           resources:
