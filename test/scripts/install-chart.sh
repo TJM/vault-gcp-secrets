@@ -12,6 +12,7 @@ HELM_OPTIONS=(
   --set "vault.address=http://vault.vault.svc.cluster.local:8200"
   --set "vault.authMethod=${AUTH_METHOD}"
   --set "vault.gcpSecretPath=gcp/key/vault-gcp-secrets"
+  --set "debugVerboseTemplateCommand=true"
 )
 
 ## Set SECRET_TYPE from simple 'docker'
