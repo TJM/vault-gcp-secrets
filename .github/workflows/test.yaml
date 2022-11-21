@@ -42,7 +42,7 @@ jobs:
 
       - name: Create KIND cluster with Registry
         # uses: helm/kind-action@v1.2.0
-        uses: container-tools/kind-action@v1
+        uses: container-tools/kind-action@v2
 
       - name: Create Kubernetes namespace
         id: kube-target-namespace
