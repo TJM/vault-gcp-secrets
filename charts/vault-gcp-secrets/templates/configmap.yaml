@@ -51,7 +51,12 @@ data:
       error_on_missing_key = true
       source      = "/srv/vault-agent/template.ctmpl"
       destination = "/dev/shm/key.json"
-      command = "bash /srv/vault-agent/template-command.sh"
+      exec        = {
+        command = [
+          "bash",
+          "/srv/vault-agent/template-command.sh",
+        ]
+      }
     }
 
     template_config {
@@ -64,6 +69,10 @@ data:
     {{ "{{" }} end {{ "}}" }}
 
   template-command.sh: |
+    #!/bin/bash
+    {{- if .Values.debugVerboseTemplateCommand }}
+    set -x
+    {{- end }}
     {{- if .Values.secret.customTemplateCommand }}
       {{- tpl .Values.secret.customTemplateCommand . | nindent 4 }}
     {{- else if eq .Values.secret.type "kubernetes.io/dockerconfigjson" }}
@@ -77,4 +86,8 @@ data:
     kubectl create secret generic "{{ .Values.secret.name }}" \
       --from-file={{ .Values.secret.key }}=/dev/shm/key.json \
       --dry-run=client -o yaml | kubectl replace -f -
+    {{- end }}
+    {{- if .Values.debugBypassTemplateCommandFail }}
+    echo "The exit code would have been: $?"
+    exit 0 # feign success
     {{- end }}
