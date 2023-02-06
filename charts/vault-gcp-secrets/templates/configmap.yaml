@@ -64,9 +64,9 @@ data:
     }
 
   template.ctmpl: |
-    {{ "{{" }} with secret "{{ .Values.vault.gcpSecretPath }}" {{ "}}" }}
+    {{ "{{-" }} with secret "{{ .Values.vault.gcpSecretPath }}" {{ "-}}" }}
     {{ "{{" }} {{ .Values.secret.template }} {{ "}}" }}
-    {{ "{{" }} end {{ "}}" }}
+    {{ "{{" }} end {{ "-}}" }}
 
   template-command.sh: |
     #!/bin/bash
