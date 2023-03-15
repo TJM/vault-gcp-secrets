@@ -65,6 +65,14 @@ secret:
   dockerUsername: _json_key
   dockerEmail: not.used@example.com
 
+# additionalSecrets - more secrets to manage with this chart (you will have to adjust the template command to manage these)
+#  - name is required, type will default to the secret.type
+# additionalSecrets:
+#   - name: oneSecret
+#   - name: twoSecret
+#     type: Opaque
+additionalSecrets: []
+
 debugVerboseTemplateCommand: false
 debugBypassTemplateCommandFail: false
 
