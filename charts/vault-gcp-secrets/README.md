@@ -21,6 +21,7 @@ NOTE: We are using this code in the production environment. You may use it at yo
 | `vault.kubernetesRole` | The name of the role which is configured for the Kubernetes auth method. | `vault-gcp-secrets` |
 | `vault.gcpSecretPath` | The vault secret path to read. | `gcp/my-role` |
 | `secret.name` | Kubernetes secret to create. | `gcp-secret` |
+| `secret.additionalSecrets` | List of Kubernetes secrets to manage. | `[]`
 | `secret.key` | Kubernetes secret key (filename). | `key.json` |
 | `secret.type` | Kubernetes secret type (needs to match the kind of secret that will be updated). | `kubernetes.io/dockerconfigjson` |
 | `secret.template` | Vault Template to decode the secret. | `base64Decode .Data.private_key_data` |
