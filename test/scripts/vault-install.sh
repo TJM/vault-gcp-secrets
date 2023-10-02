@@ -11,7 +11,7 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 
 helm upgrade --install vault hashicorp/vault \
   --namespace=vault \
-  --version=0.18.0 \
+  --version=0.25.0 \
   --set server.dev.enabled=true \
   --set injector.enabled=false
 
