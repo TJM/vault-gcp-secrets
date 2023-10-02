@@ -30,9 +30,9 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Helm
-        uses: azure/setup-helm@v3.5
+        uses: azure/setup-helm@v3
         with:
-          version: v3.4.0
+          version: v3.11.1
 
       - name: Setup Vault
         run: |
