@@ -19,7 +19,7 @@ They can be run directly as well for testing, but require some environment varia
 ## Testing Locally
 
 * Install Vault (`brew install vault`)
-* Set Environemt Variables (reference [test workflow](../../.github/workflows/test.yaml))
+* Set Environment Variables (reference [test workflow](../../.github/workflows/test.yaml))
 
 ```bash
 export VAULT_ADDR='http://127.0.0.1:8200'
