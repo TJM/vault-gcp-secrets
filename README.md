@@ -23,5 +23,5 @@ See helm chart readme: [charts/vault-gcp-secrets/README.md](charts/vault-gcp-sec
 
 NOTE: You will most likely need to set some values, like authentication method, path, etc.
 
-This chart was rougly based on the [vault-secrets-operator](https://github.com/ricoberger/vault-secrets-operator),
+This chart was roughly based on the [vault-secrets-operator](https://github.com/ricoberger/vault-secrets-operator),
 which at the time was unable to support GCP secrets engine.
