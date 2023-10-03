@@ -1,4 +1,0 @@
-{{- define "common.errors.deprecated" -}}
-  {{- printf "\n DEPRECATION ERROR: This chart is deprecated - see https://github.com/TJM/vault-gcp-secrets for the replacement." | fail -}}
-{{- end -}}
-{{ include "common.errors.deprecated" . }}
