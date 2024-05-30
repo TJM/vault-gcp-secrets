@@ -5,17 +5,24 @@ set -o pipefail
 set -x
 IFS=$'\n\t'
 
-kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault-auth
+kubectl create serviceaccount --namespace $VAULT_AUTH_NAMESPACE vault
 
 kubectl create clusterrolebinding vault-auth-kube \
   --clusterrole system:auth-delegator \
-  --serviceaccount $VAULT_AUTH_NAMESPACE:vault-auth
+  --serviceaccount $VAULT_AUTH_NAMESPACE:vault
 
-VAULT_SECRET_NAME=$(kubectl get serviceaccount vault-auth \
-  --namespace $VAULT_AUTH_NAMESPACE \
-  --output jsonpath="{.secrets[*]['name']}")
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-k8s-auth-secret
+  namespace: $VAULT_AUTH_NAMESPACE
+  annotations:
+    kubernetes.io/service-account.name: vault
+type: kubernetes.io/service-account-token
+EOF
 
-SA_JWT_TOKEN=$(kubectl get secret $VAULT_SECRET_NAME \
+SA_JWT_TOKEN=$(kubectl get secret vault-k8s-auth-secret \
   --namespace $VAULT_AUTH_NAMESPACE \
   --output 'go-template={{ .data.token }}' | base64 --decode)
 
