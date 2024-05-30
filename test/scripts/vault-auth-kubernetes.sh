@@ -16,6 +16,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: vault-k8s-auth-secret
+  namespace: $VAULT_AUTH_NAMESPACE
   annotations:
     kubernetes.io/service-account.name: vault
 type: kubernetes.io/service-account-token
