@@ -1,4 +1,4 @@
-FROM hashicorp/vault:1.19.0
+FROM hashicorp/vault:1.19.5
 ARG KUBECTL_VERSION="stable"
 
 # Add more dependencies
