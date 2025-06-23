@@ -1,5 +1,7 @@
 # Vault GCP Secrets
 
+NOTE: This repo is _barely_ maintained. If you need something from it, please fork it.
+
 Use vault agent to keep a `vault_gcp_secrets_roleset` service account key updated as a
 Kubernetes secret, either for docker-registry or generic (Opaque). This can be used
 for various other pods needing access to Google Services without having a vault agent
